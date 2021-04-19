@@ -147,10 +147,7 @@ initial_model = tf.keras.Sequential(
 initial_model.summary()
 
 x_train=[]
-#C:/Users/Olive/FYP/Fit2DGaussian Function to Data/X_dataset
-#C:/Users/Olive/Desktop/Fit2DGaussian Function to Data/X_dataset
 for root, dirnames, filenames in os.walk("C:/Users/Olive/Desktop/Fit2DGaussian Function to Data/X_dataset"):
-#for root, dirnames, filenames in os.walk("C:/Users/Olive/FYP/Fit2DGaussian Function to Data/X_dataset"):
     for filename in filenames:
         if re.search("\.(jpg|jpeg|JPEG|png|bmp|tiff)$", filename):
             #if batch_nb == max_batches: 
@@ -162,37 +159,6 @@ for root, dirnames, filenames in os.walk("C:/Users/Olive/Desktop/Fit2DGaussian F
             image=image/255
             x_train.append(image)
 x_train=np.array(x_train)
-
-#plt.imshow(x_train[1,:,:])
-
-'''
-#===================== Training set normalization ==========================
-# normalize training images to be in the range [0,1] and calculate the 
-# training set mean and std
-mean_train = np.zeros(x_train.shape[0],dtype=np.float32)
-std_train = np.zeros(x_train.shape[0], dtype=np.float32)
-for i in range(x_train.shape[0]):
-    x_train[i, :, :] = project_01(x_train[i, :, :])
-    mean_train[i] = x_train[i, :, :].mean()
-    std_train[i] = x_train[i, :, :].std()
-
-# resulting normalized training images
-mean_val_train = mean_train.mean()
-std_val_train = std_train.mean()
-x_train_norm = np.zeros(x_train.shape, dtype=np.float32)
-for i in range(x_train.shape[0]):
-    x_train_norm[i, :, :] = normalize_im(x_train[i, :, :], mean_val_train, std_val_train)
-
-plt.imshow(x_train_norm[4,:,:])
-# patch size
-psize =  x_train_norm.shape[1]
-
-# Reshaping
-x_train_norm = x_train_norm.reshape(x_train.shape[0], psize, psize, 1)
-
-plt.imshow(x_train[0], cmap='gray', vmin=0, vmax=255)
-'''
-
 x_train = x_train.reshape(x_train.shape[0], 128, 128, 1)
 x_train = x_train.astype('float32')
 
@@ -200,10 +166,7 @@ print('x_train shape:', x_train.shape)
 print('Number of images in x_train', x_train.shape[0])
 
 y_train=[]
-#C:/Users/Olive/FYP/Fit2DGaussian Function to Data/Label
-#C:/Users/Olive/Desktop/Fit2DGaussian Function to Data/Multi_Label
 for root, dirnames, filenames in os.walk("C:/Users/Olive/Desktop/Fit2DGaussian Function to Data/Multi_Label"):
-#for root, dirnames, filenames in os.walk("C:/Users/Olive/FYP/Fit2DGaussian Function to Data/Label"):
     for filename in filenames:
         if re.search("\.(jpg|jpeg|JPEG|png|bmp|tiff)$", filename):
             #if batch_nb == max_batches: 
@@ -220,7 +183,6 @@ y_train /= 255
 #plt.imshow(y_train[1,:,:])
 y_train = y_train.reshape(y_train.shape[0], 1024, 1024, 1)
 
-
 X_train, X_test, Y_train, Y_test = train_test_split(x_train, y_train, test_size=0.3, random_state=42)
 X_train = X_train.astype('float32')
 X_test = X_test.astype('float32')
@@ -235,100 +197,7 @@ checkpointer = ModelCheckpoint(filepath="C:/Users/Olive/FYP/Fit2DGaussian Functi
 history = LossHistory()
 # Change learning when loss reaches a plataeu
 change_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, min_lr=0.00005)
-'''
-# have to define manually a dict to store all epochs scores 
-history = {}
-history['history'] = {}
-history['history']['loss'] = []
-history['history']['val_loss'] = []
 
-   # Inform user training begun
-print('Training model...')
-#opt = optimizers.Adam(lr=0.001)
-
-
-initial_model.compile(optimizer='adam', loss = L1L2loss((1024, 1024, 1),(7,7),1))
-# define number of iterations in training and test
-batch_size=1
-train_iter = round(X_train.shape[0]/batch_size)
-test_iter = round(X_test.shape[0]/batch_size)
-
-for epoch in range(5):
-    
-    # train iterations 
-    loss=0
-    for i in range(train_iter):
-        
-        start = i*batch_size
-        end = i*batch_size + batch_size
-        batchX = X_train[start:end,]
-        batchy = Y_train[start:end,]
-        
-        loss_ = initial_model.train_on_batch(batchX,batchy)
-                
-        loss += loss_
-     
-    history['history']['loss'].append(loss/train_iter)
-    print('loss:',history['history']['loss'][epoch])
-    
-    
-    # test iterations 
-    val_loss= 0
-    for i in range(test_iter):
-        
-        start = i*batch_size
-        end = i*batch_size + batch_size
-        batchX = X_test[start:end,]
-        batchy = Y_test[start:end,]
-        
-        val_loss_= initial_model.test_on_batch(batchX,batchy)
-    
-    history['history']['val_loss'].append(val_loss/test_iter)
-    print('val_loss:',history['history']['val_loss'][epoch])
- 
-initial_model.compile(optimizer='adam', loss = L1L2loss((1024, 1024, 1),(21,21),1))
-
-for epoch in range(5):
-    
-    # train iterations 
-    loss=0
-    for i in range(train_iter):
-        
-        start = i*batch_size
-        end = i*batch_size + batch_size
-        batchX = X_train[start:end,]
-        batchy = Y_train[start:end,]
-    
-        loss_= initial_model.train_on_batch(batchX,batchy)
-        
-        loss += loss_
-      
-        
-    history['history']['loss'].append(loss/train_iter)
-    print('loss2:',history['history']['loss'][epoch])
-   
-    # test iterations 
-    val_loss= 0
-    for i in range(test_iter):
-        
-        start = i*batch_size
-        end = i*batch_size + batch_size
-        batchX = X_test[start:end,]
-        batchy =Y_test[start:end,]
-        
-        val_loss_ = initial_model.test_on_batch(batchX,batchy)
-        
-        val_loss += val_loss_
-       
-        
-    history['history']['val_loss'].append(val_loss/test_iter)
-    print('val_loss2',history['history']['val_loss'][epoch])
- 
-plt.title('Loss')
-plt.plot(history['history']['loss'], label='train')
-plt.plot(history['history']['val_loss'], label='test')
-plt.legend()
-'''
 initial_model.compile(optimizer='adam', loss = L1L2loss((1024, 1024, 1),(7,7),1))
 train_history=initial_model.fit(x=X_train,y=Y_train,batch_size=1, epochs=50 ,verbose=1,callbacks=[history,checkpointer,change_lr],\
                   validation_data=(X_test, Y_test) ) 
