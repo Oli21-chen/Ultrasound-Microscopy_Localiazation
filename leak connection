@@ -25,58 +25,62 @@ from skimage import io
 from numpy import newaxis
 
 #Conv block 1
-inputs=tf.keras.Input(shape=(128, 128, 1))
-x=layers.Conv2D(16, 3, strides=1, padding='same',activation=None, name="Conv_1")(inputs)
+inputs=tf.keras.Input(shape=(128, 128, 1))#128,128,1
+x=layers.Conv2D(16, 3, strides=1, padding='same',activation=None, name="Conv_1")(inputs)#128,128,16
 x=layers.BatchNormalization()(x)
 x= layers.LeakyReLU(alpha=0.3)(x)
-x= layers.Conv2D(16, 3, strides=1,padding='same', activation=None, name="Conv_2")(x)
+x= layers.Conv2D(16, 3, strides=1,padding='same', activation=None, name="Conv_2")(x)#128,128,16
 x= layers.BatchNormalization()(x)
 x= layers.LeakyReLU(alpha=0.3)(x)
-x= layers.MaxPool2D(pool_size=(2, 2))(x)
+x= layers.MaxPool2D(pool_size=(2, 2))(x)#64,64,16
 res1=x
+
  #Conv block 2
-x=layers.Conv2D(32, 3, strides=1,padding='same', activation=None, name="Conv_3")(x)
+x=layers.Conv2D(32, 3, strides=1,padding='same', activation=None, name="Conv_3")(x)#64,64,32
 x=layers.BatchNormalization()(x)
 x= layers.LeakyReLU(alpha=0.3)(x)
-x= layers.Conv2D(32, 3, strides=1,padding='same', activation=None, name="Conv_4")(x)
+x= layers.Conv2D(32, 3, strides=1,padding='same', activation=None, name="Conv_4")(x)#64,64,32
 x= layers.BatchNormalization()(x)
 x= layers.LeakyReLU(alpha=0.3)(x)
-x= layers.MaxPool2D(pool_size=(2, 2))(x)
 res2=x
+x= layers.MaxPool2D(pool_size=(2, 2))(x)#32,32,32
+
 #Conv block 3
-x=layers.Conv2D(64, 3, strides=1,padding='same', activation=None, name="Conv_5")(x)
+x=layers.Conv2D(64, 3, strides=1,padding='same', activation=None, name="Conv_5")(x)#32,32,64
 x= layers.BatchNormalization()(x)
 x= layers.LeakyReLU(alpha=0.3)(x)
 x= layers.Conv2D(64, 3, strides=1,padding='same', activation=None, name="Conv_6")(x)
 x= layers.BatchNormalization()(x)
 x= layers.LeakyReLU(alpha=0.3)(x)
-x= layers.MaxPool2D(pool_size=(2, 2))(x)
 res3=x
+x= layers.MaxPool2D(pool_size=(2, 2))(x)#16,16,64
+
 
  #latent block
-x= layers.Conv2D(128, 3, strides=1, padding='same',activation="relu", name="Conv_7")(x)
+x= layers.Conv2D(128, 3, strides=1, padding='same',activation="relu", name="Conv_7")(x)#16,16,128
 x= layers.Dropout(0.5)(x)
 x= layers.Conv2D(128, 3, strides=1, padding='same',activation="relu", name="Conv_8")(x)
  
- 
  #Deconv block 1
+x=layers.Conv2DTranspose(64,5,strides=1,padding='same',activation="relu",name="DeConv_1")(x)#16,16,64
+x= layers.Conv2DTranspose(64,5,strides=2,padding='same',activation="relu",name="DeConv_2")(x)#32,32,64
 added1 = tf.keras.layers.add([x, res3])
-x=layers.Conv2DTranspose(64,5,strides=1,padding='same',activation="relu",name="DeConv_1")(added1)
-x= layers.Conv2DTranspose(64,5,strides=2,padding='same',activation="relu",name="DeConv_2")(x)
-x= layers.UpSampling2D(size=(2, 2))(x)
+x= layers.UpSampling2D(size=(2, 2))(added1)#64,64,64
+
  #Deconv block 2
+x= layers.Conv2DTranspose(32,5,strides=1,padding='same',activation="relu",name="DeConv_3")(x)#64,64,32
 added2 = tf.keras.layers.add([x, res2])
-x= layers.Conv2DTranspose(32,5,strides=1,padding='same',activation="relu",name="DeConv_3")(added2)
-x= layers.Conv2DTranspose(32,5,strides=2,padding='same',activation="relu",name="DeConv_4")(x)
-x= layers.UpSampling2D(size=(2, 2))(x)
+x= layers.Conv2DTranspose(32,5,strides=2,padding='same',activation="relu",name="DeConv_4")(added2)#128,128,32
+x= layers.UpSampling2D(size=(2, 2))(x)#256,256,32
+
  #Deconv block 3
-added3 = tf.keras.layers.add([x, res1])
-x= layers.Conv2DTranspose(16,5,strides=1,padding='same',activation="relu",name="DeConv_5")(added3)
-x= layers.Conv2DTranspose(16,5,strides=2,padding='same',activation="relu",name="DeConv_6")(x)
-x= layers.UpSampling2D(size=(2, 2))(x)
-outputs= layers.Conv2D(1, 5, strides=1, padding='same',activation="linear",\
-           kernel_initializer="Orthogonal",\
-           name="Conv_9")(x)
+#added3 = tf.keras.layers.add([x, res1])
+x= layers.Conv2DTranspose(16,5,strides=1,padding='same',activation="relu",name="DeConv_5")(x)#256,256,16
+x= layers.Conv2DTranspose(16,5,strides=2,padding='same',activation="relu",name="DeConv_6")(x)#512,512,16
+x= layers.UpSampling2D(size=(2, 2))(x)#1024,1024,16
+outputs= layers.Conv2D(1, 5, strides=1, padding='same',activation="linear",#1024,1024,1
+           kernel_initializer="Orthogonal",name="Conv_9")(x)
 
 initial_model=tf.keras.Model(inputs=inputs,outputs=outputs)
 initial_model.summary()
+
