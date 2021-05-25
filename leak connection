@@ -1,0 +1,55 @@
+inputs=tf.keras.Input(shape=(128, 128, 1))
+conv1=layers.Conv2D(16, 3, strides=1, padding='same',activation=None, name="Conv_1")(inputs)
+batch1=layers.BatchNormalization()(conv1)
+leaky1= layers.LeakyReLU(alpha=0.3)(batch1)
+conv2= layers.Conv2D(16, 3, strides=1,padding='same', activation=None, name="Conv_2")(leaky1)
+batch2= layers.BatchNormalization()(conv2)
+leaky2= layers.LeakyReLU(alpha=0.3)(batch2)
+pool1= layers.MaxPool2D(pool_size=(2, 2))(leaky2)
+x1=pool1
+ 
+conv3=layers.Conv2D(32, 3, strides=1,padding='same', activation=None, name="Conv_3")(x1)
+batch3=layers.BatchNormalization()(conv3)
+leaky3= layers.LeakyReLU(alpha=0.3)(batch3)
+conv4= layers.Conv2D(32, 3, strides=1,padding='same', activation=None, name="Conv_4")(leaky3)
+batch4= layers.BatchNormalization()(conv4)
+leaky4= layers.LeakyReLU(alpha=0.3)(batch4)
+pool2= layers.MaxPool2D(pool_size=(2, 2))(leaky4)
+x2=pool2
+
+conv5=layers.Conv2D(64, 3, strides=1,padding='same', activation=None, name="Conv_5")(x2)
+batch5= layers.BatchNormalization()(conv5)
+leaky5= layers.LeakyReLU(alpha=0.3)(batch5)
+conv6= layers.Conv2D(64, 3, strides=1,padding='same', activation=None, name="Conv_6")(leaky5)
+batch6= layers.BatchNormalization()(conv6)
+leaky6= layers.LeakyReLU(alpha=0.3)(batch6)
+pool3= layers.MaxPool2D(pool_size=(2, 2))(leaky6)
+x3=pool3
+
+ #latent block
+conv7= layers.Conv2D(128, 3, strides=1, padding='same',activation="relu", name="Conv_7")(x3)
+drop= layers.Dropout(0.5)(conv7)
+conv8= layers.Conv2D(128, 3, strides=1, padding='same',activation="relu", name="Conv_8")(drop)
+ 
+ 
+  #Deconv block
+added1 = tf.keras.layers.add([x3, conv8])
+deconv1=layers.Conv2DTranspose(64,5,strides=1,padding='same',activation="relu",name="DeConv_1")(added1)
+deconv2= layers.Conv2DTranspose(64,5,strides=2,padding='same',activation="relu",name="DeConv_2")(deconv1)
+upsamp1= layers.UpSampling2D(size=(2, 2))(deconv2)
+
+added2 = tf.keras.layers.add([x2, upsamp1])
+deconv3= layers.Conv2DTranspose(32,5,strides=1,padding='same',activation="relu",name="DeConv_3")(added2)
+deconv4= layers.Conv2DTranspose(32,5,strides=2,padding='same',activation="relu",name="DeConv_4")(deconv3)
+upsamp2= layers.UpSampling2D(size=(2, 2))(deconv4)
+ 
+added3 = tf.keras.layers.add([x1, upsamp2])
+deconv5= layers.Conv2DTranspose(16,5,strides=1,padding='same',activation="relu",name="DeConv_5")(added3)
+deconv6= layers.Conv2DTranspose(16,5,strides=2,padding='same',activation="relu",name="DeConv_6")(deconv5)
+upsamp3= layers.UpSampling2D(size=(2, 2))(deconv6)
+outputs= layers.Conv2D(1, 5, strides=1, padding='same',activation="linear",\
+           kernel_initializer="Orthogonal",\
+           name="Conv_9")(upsamp3)
+
+initial_model=tf.keras.Model(inputs=inputs,outputs=outputs)
+initial_model.summary()
