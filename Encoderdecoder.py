@@ -147,7 +147,7 @@ initial_model = tf.keras.Sequential(
 initial_model.summary()
 
 x_train=[]
-for root, dirnames, filenames in os.walk("C:/Users/Olive/Desktop/Fit2DGaussian Function to Data/X_dataset"):
+for root, dirnames, filenames in os.walk(r"C:/Users/Olive/Desktop/Fit2DGaussian Function to Data/X_dataset"):#r 表示真的反斜杠
     for filename in filenames:
         if re.search("\.(jpg|jpeg|JPEG|png|bmp|tiff)$", filename):
             #if batch_nb == max_batches: 
@@ -166,7 +166,7 @@ print('x_train shape:', x_train.shape)
 print('Number of images in x_train', x_train.shape[0])
 
 y_train=[]
-for root, dirnames, filenames in os.walk("C:/Users/Olive/Desktop/Fit2DGaussian Function to Data/Multi_Label"):
+for root, dirnames, filenames in os.walk(r"C:/Users/Olive/Desktop/Fit2DGaussian Function to Data/Multi_Label"):
     for filename in filenames:
         if re.search("\.(jpg|jpeg|JPEG|png|bmp|tiff)$", filename):
             #if batch_nb == max_batches: 
